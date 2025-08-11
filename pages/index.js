@@ -1,6 +1,5 @@
 import React from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import dynamic from 'next/dynamic';
 
 /*
  * Data definitions
@@ -125,66 +124,8 @@ function answerFromCorpus(q, index) {
   return `You might be looking for: ${names}.`;
 }
 
-/**
- * Fractal blob component
- *
- * Each blob is a rotating torus knot that pulses in colour when hovered. The material colour
- * transitions to a lighter shade on pointer over and returns to dark when pointer out. Use
- * scale and position props to arrange them in space.
- */
-function FractalBlob({ scale = 1, position = [0, 0, 0] }) {
-  const meshRef = React.useRef();
-  const [hovered, setHovered] = React.useState(false);
-  useFrame((state, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x += 0.2 * delta;
-      meshRef.current.rotation.y += 0.15 * delta;
-    }
-  });
-  return (
-    <mesh
-      ref={meshRef}
-      position={position}
-      scale={scale}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        setHovered(true);
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation();
-        setHovered(false);
-      }}
-    >
-      {/* A torus knot provides an abstract, fractal‑inspired form */}
-      <torusKnotGeometry args={[1, 0.3, 128, 32]} />
-      <meshStandardMaterial
-        color={hovered ? '#6B7280' : '#111827'}
-        roughness={0.4}
-        metalness={0.2}
-      />
-    </mesh>
-  );
-}
-
-/**
- * 3D scene component
- *
- * Contains multiple fractal blobs arranged in space. The `frameloop="demand"` prop ensures
- * the canvas only re-renders when necessary, saving GPU resources. Ambient and directional
- * lights provide subtle illumination.
- */
-function FractalField() {
-  return (
-    <Canvas camera={{ position: [0, 0, 6], fov: 50 }} className="h-[60vh] w-full" frameloop="demand">
-      <ambientLight intensity={0.2} />
-      <directionalLight position={[5, 5, 5]} intensity={0.4} />
-      <FractalBlob scale={1.4} position={[0.2, 0.1, 0]} />
-      <FractalBlob scale={0.9} position={[-2.2, -0.6, -1]} />
-      <FractalBlob scale={0.8} position={[2.2, 0.6, -1]} />
-      <OrbitControls enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 3} maxPolarAngle={(2 * Math.PI) / 3} />
-    </Canvas>
-  );
-}
+// Dynamically import the Three.js scene to prevent server-side rendering issues.
+const FractalField = dynamic(() => import('../components/FractalField'), { ssr: false });
 
 /**
  * Hero section
